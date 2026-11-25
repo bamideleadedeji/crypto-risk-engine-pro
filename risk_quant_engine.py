@@ -153,6 +153,13 @@ def compute_risk_metrics(
     stop_distance_pct = param_var_95 * STOP_LOSS_VAR_MULTIPLIER
     suggested_stop_px = latest_price * (1.0 - stop_distance_pct / 100.0)
 
+    # Bear-Market Cash Shield: 0% crypto allocation when Spot < 50-Period EMA
+    ema50 = float(work["close"].ewm(span=50, adjust=False).mean().iloc[-1])
+    if latest_price < ema50:
+        recommended_usd = 0.0
+        recommended_units = 0.0
+        model_label = f"{model_label} | BEAR SHIELD (Spot < EMA50 ${ema50:,.0f} -> 100% Cash/USDC)"
+
     summary = RiskSummary(
         model_label=model_label,
         latest_price=round(latest_price, 2),
